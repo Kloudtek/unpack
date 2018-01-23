@@ -1,40 +1,34 @@
 package com.kloudtek.unpack;
 
-import com.kloudtek.unpack.Destination;
-import com.kloudtek.unpack.Source;
 import com.kloudtek.util.FileUtils;
+import com.kloudtek.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class FSSource extends Source {
-    private File file;
-    private String path;
-
-    protected FSSource(File file, String path) {
-        this.file = file;
-        this.path = path;
+    public FSSource(File file) throws UnpackException {
+        listFiles(file,null);
     }
 
-    public FSSource(File file) throws IOException {
-        this.file = file;
-        path = "";
-        listFiles(file,path);
-    }
-
-    @Override
-    public List<Source> getFiles() {
-        return null;
-    }
-
-    private void listFiles(File file, String path) throws IOException {
-        if( file.isDirectory() ) {
-            for (File f : FileUtils.listFileInDir(file)) {
-                files.add(new FSSource())
+    private void listFiles(File file, FSSourceDirectory parent ) throws UnpackException {
+        try {
+            SourceFile srcFile;
+            if( file.isDirectory() ) {
+                FSSourceDirectory dir = new FSSourceDirectory(file, parent);
+                for (File f : FileUtils.listFileInDir(file)) {
+                    listFiles(f, dir);
+                }
+                srcFile = dir;
+            } else {
+                srcFile = new FSSourceFile(file, parent);
             }
-        } else {
-            files.add(new FSSource(file,path));
+            if( parent == null ) {
+                files.add(srcFile);
+            }
+            allFiles.add(srcFile);
+        } catch (IOException e) {
+            throw new UnpackException(e);
         }
     }
 }

@@ -17,7 +17,7 @@ public class Unpacker {
     private Source source;
     private Destination destination;
 
-    public Unpacker(File file, FileType fileType, File destination, FileType destinationType) {
+    public Unpacker(File file, FileType fileType, File destination, FileType destinationType) throws UnpackException {
         this.source = Source.create(file, fileType);
         this.destination = Destination.create(destination, destinationType);
     }

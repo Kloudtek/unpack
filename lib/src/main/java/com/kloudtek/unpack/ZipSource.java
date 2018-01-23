@@ -10,11 +10,6 @@ public class ZipSource extends Source {
 
     public ZipSource(File file) {
         this.file = file;
-        path = "";
     }
 
-    @Override
-    public List<Source> getFiles() {
-        return null;
-    }
 }

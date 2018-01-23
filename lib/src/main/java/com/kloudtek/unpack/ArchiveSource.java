@@ -10,8 +10,4 @@ public class ArchiveSource extends Source {
         CompressorStreamFactory compressorStreamFactory = new CompressorStreamFactory();
     }
 
-    @Override
-    public List<Source> getFiles() {
-        return null;
-    }
 }

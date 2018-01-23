@@ -83,7 +83,7 @@ class UnpackerTest {
         );
     }
 
-    private void init(FileType src, FileType dest) {
+    private void init(FileType src, FileType dest) throws UnpackException {
         try {
             String testId = UUID.randomUUID().toString();
             System.out.println("Test ID: "+testId);

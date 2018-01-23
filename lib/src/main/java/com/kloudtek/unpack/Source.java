@@ -7,14 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Source {
-    protected String path;
-    protected String destination;
-    protected Source parent;
-    protected List<Source> files = new ArrayList<>();
+    protected List<SourceFile> files = new ArrayList<>();
+    protected List<SourceFile> allFiles = new ArrayList<>();
 
-    public abstract List<Source> getFiles();
-
-    public static Source create(File file, FileType fileType) {
+    public static Source create(File file, FileType fileType) throws UnpackException {
         switch (fileType) {
             case DIR:
                 return new FSSource(file);
