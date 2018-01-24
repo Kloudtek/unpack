@@ -23,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class UnpackerTest {
     public static final String PATH_TEXTFILE = "textfile.txt";
     public static final String FOO = "foo";
+    public static final String SOMEDIR = "somedir";
+    public static final String SOMEFILE = "somefile";
+    public static final String BAR = "bar";
     private static File tmpDir;
     private File srcFile;
     private File dstFile;
@@ -60,10 +63,11 @@ class UnpackerTest {
     public void simpleCopyFiles(FileType srcType, FileType dstType) throws Exception {
         init(srcType, dstType);
         builder.addText(PATH_TEXTFILE, FOO);
+        builder.mkdir(SOMEDIR).addText(SOMEFILE, BAR);
         unpacker.unpack();
         verifier.exists();
         verifier.textFile(PATH_TEXTFILE,FOO);
-        assertIsDir(dstFile, 1);
+        verifier.dir(SOMEDIR).textFile(SOMEFILE,BAR);
     }
 
     @Test
@@ -78,8 +82,8 @@ class UnpackerTest {
 
     static Stream<Arguments> srcAndDestTypes() {
         return Stream.of(
-            Arguments.of(DIR, DIR),
-            Arguments.of(ZIP, DIR)
+            Arguments.of(DIR, DIR)
+//                ,Arguments.of(ZIP, DIR)
         );
     }
 
@@ -126,6 +130,8 @@ class UnpackerTest {
 
         public void build() throws IOException {
         }
+
+        public abstract SourceBuilder mkdir(String name);
     }
 
     class FileBuilder extends SourceBuilder {
@@ -133,7 +139,7 @@ class UnpackerTest {
 
         public FileBuilder(File file) throws IOException {
             this.file = file;
-            if (!file.mkdirs()) {
+            if (!file.exists() && !file.mkdirs()) {
                 throw new IOException("Unable to create dir: " + file.getPath());
             }
         }
@@ -147,6 +153,16 @@ class UnpackerTest {
             }
             FileUtils.write(file,data);
             return this;
+        }
+
+        @Override
+        public SourceBuilder mkdir(String name) {
+            try {
+                File dir = new File(this.file, name);
+                return new FileBuilder(dir);
+            } catch (IOException e) {
+                throw new UnexpectedException(e);
+            }
         }
     }
 
@@ -171,6 +187,11 @@ class UnpackerTest {
         public void build() throws IOException {
             os.close();
         }
+
+        @Override
+        public SourceBuilder mkdir(String name) {
+            return null;
+        }
     }
 
     abstract class Verifier {
@@ -183,6 +204,8 @@ class UnpackerTest {
         public abstract byte[] getData(String path);
 
         public abstract void exists();
+
+        public abstract Verifier dir(String dir);
     }
 
     class FileVerifier extends Verifier {
@@ -206,6 +229,13 @@ class UnpackerTest {
                 throw new UnexpectedException(e);
             }
         }
+
+        @Override
+        public Verifier dir(String dir) {
+            FileVerifier verifier = new FileVerifier(new File(file, dir));
+            verifier.exists();
+            return verifier;
+        }
     }
 
     class ZipVerifier extends Verifier {
@@ -217,6 +247,11 @@ class UnpackerTest {
         @Override
         public void exists() {
 
+        }
+
+        @Override
+        public Verifier dir(String dir) {
+            return null;
         }
     }
 

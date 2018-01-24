@@ -1,12 +1,12 @@
 package com.kloudtek.unpack;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SourceFile {
+public abstract class SourceFile {
     protected String name;
     protected String path;
-    protected String destination;
     protected SourceDirectory parent;
 
     protected SourceFile(String name, SourceDirectory parent) {
@@ -23,11 +23,9 @@ public class SourceFile {
         return path;
     }
 
-    public String getDestination() {
-        return destination;
-    }
-
     public SourceDirectory getParent() {
         return parent;
     }
+
+    public abstract InputStream createInputStream() throws UnpackException;
 }

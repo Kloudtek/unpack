@@ -3,15 +3,23 @@ package com.kloudtek.unpack;
 import com.kloudtek.util.FileUtils;
 import com.kloudtek.util.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 public class FSSourceFile extends SourceFile {
     private File file;
-    private String path;
 
     protected FSSourceFile(File file, FSSourceDirectory parent) {
         super(file.getName(),parent);
+        this.file = file;
+    }
+
+    @Override
+    public InputStream createInputStream() throws UnpackException {
+        try {
+            return new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            throw new UnpackException(e.getMessage(),e);
+        }
     }
 }

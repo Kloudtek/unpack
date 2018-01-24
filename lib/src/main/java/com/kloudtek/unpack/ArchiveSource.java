@@ -10,4 +10,8 @@ public class ArchiveSource extends Source {
         CompressorStreamFactory compressorStreamFactory = new CompressorStreamFactory();
     }
 
+    @Override
+    public void read() throws UnpackException {
+
+    }
 }

@@ -10,6 +10,24 @@ public abstract class Source {
     protected List<SourceFile> files = new ArrayList<>();
     protected List<SourceFile> allFiles = new ArrayList<>();
 
+    public abstract void read() throws UnpackException;
+
+    public List<SourceFile> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<SourceFile> files) {
+        this.files = files;
+    }
+
+    public List<SourceFile> getAllFiles() {
+        return allFiles;
+    }
+
+    public void setAllFiles(List<SourceFile> allFiles) {
+        this.allFiles = allFiles;
+    }
+
     public static Source create(File file, FileType fileType) throws UnpackException {
         switch (fileType) {
             case DIR:

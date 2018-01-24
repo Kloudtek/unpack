@@ -12,4 +12,8 @@ public class ZipSource extends Source {
         this.file = file;
     }
 
+    @Override
+    public void read() throws UnpackException {
+
+    }
 }
