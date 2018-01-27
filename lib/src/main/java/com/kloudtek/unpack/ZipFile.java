@@ -18,7 +18,7 @@ public class ZipFile extends SourceFile {
     }
 
     @Override
-    public InputStream createInputStream() throws UnpackException {
+    protected InputStream createInputStream() throws UnpackException {
         try {
             return zipFile.getInputStream(archiveEntry);
         } catch (IOException e) {

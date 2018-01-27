@@ -15,7 +15,7 @@ public class FSSourceFile extends SourceFile {
     }
 
     @Override
-    public InputStream createInputStream() throws UnpackException {
+    protected InputStream createInputStream() throws UnpackException {
         try {
             return new FileInputStream(file);
         } catch (FileNotFoundException e) {

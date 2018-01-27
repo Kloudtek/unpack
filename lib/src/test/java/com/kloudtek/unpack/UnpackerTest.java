@@ -1,5 +1,6 @@
 package com.kloudtek.unpack;
 
+import com.kloudtek.unpack.transformer.SetPropertyTransformer;
 import com.kloudtek.util.FileUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.UnexpectedException;
@@ -12,9 +13,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.opentest4j.AssertionFailedError;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -31,6 +34,9 @@ class UnpackerTest {
     public static final String SOMEDIR = "somedir";
     public static final String SOMEFILE = "somefile";
     public static final String BAR = "bar";
+    public static final String TEST_PROPERTIES = "test.properties";
+    public static final String GAH = "gah";
+    public static final String BAZ = "baz";
     private static File tmpDir;
     private File srcFile;
     private File dstFile;
@@ -77,13 +83,22 @@ class UnpackerTest {
     }
 
     @Test
-    public void testUnpackNestedZipAndCreateNewNestedZipOfOtherFiles() throws Exception {
-
+    public void testSetPropertyNewFile() throws Exception {
+        init(DIR, DIR);
+        unpacker.addTransformer(new SetPropertyTransformer(TEST_PROPERTIES, FOO, BAR));
+        builder.build();
+        unpacker.unpack();
+        verifier.properties(TEST_PROPERTIES, FOO, BAR);
     }
 
     @Test
-    public void transformNestedZipFile() throws Exception {
-
+    public void testSetPropertyExistingFile() throws Exception {
+        init(DIR, DIR);
+        unpacker.addTransformer(new SetPropertyTransformer(TEST_PROPERTIES, FOO, BAR));
+        builder.properties(TEST_PROPERTIES, GAH, BAZ);
+        builder.build();
+        unpacker.unpack();
+        verifier.properties(TEST_PROPERTIES, FOO, BAR, GAH, BAZ);
     }
 
     static Stream<Arguments> srcAndDestTypes() {
@@ -98,7 +113,7 @@ class UnpackerTest {
     private void init(FileType src, FileType dest) throws UnpackException {
         try {
             String testId = UUID.randomUUID().toString();
-            System.out.println("Test ID: " + testId);
+            System.out.println("Test ID: " + testId+" SRC: "+src+" DST: "+dest);
             srcFile = new File(tmpDir, testId + "-src." + src.getExtension());
             dstFile = new File(tmpDir, testId + "-dst." + src.getExtension());
             builder = createSource(src);
@@ -142,6 +157,16 @@ class UnpackerTest {
         }
 
         public abstract SourceBuilder mkdir(String name);
+
+        public void properties(String path, String key, String value) {
+            try {
+                Properties p = new Properties();
+                p.setProperty(key,value);
+                addData(path,IOUtils.toByteArray(os -> p.store(os,"")));
+            } catch (IOException e) {
+                throw new UnexpectedException(e);
+            }
+        }
     }
 
     class FileBuilder extends SourceBuilder {
@@ -226,6 +251,35 @@ class UnpackerTest {
         public abstract void exists();
 
         public abstract Verifier dir(String dir);
+
+        public Verifier properties(String path, String key, String value) {
+            Properties p = getProperties(path);
+            assertEquals(1,p.size());
+            assertTrue(p.containsKey(key));
+            assertEquals(value,p.get(key));
+            return this;
+        }
+
+        public Verifier properties(String path, String key1, String value1, String key2, String value2) {
+            Properties p = getProperties(path);
+            assertEquals(2,p.size());
+            assertTrue(p.containsKey(key1));
+            assertEquals(value1,p.get(key1));
+            assertTrue(p.containsKey(key2));
+            assertEquals(value2,p.get(key2));
+            return this;
+        }
+
+        private Properties getProperties(String path) {
+            try {
+                Properties p = new Properties();
+                byte[] data = getData(path);
+                p.load(new ByteArrayInputStream(data));
+                return p;
+            } catch (IOException e) {
+                throw new UnexpectedException(e);
+            }
+        }
     }
 
     class FileVerifier extends Verifier {
@@ -276,7 +330,7 @@ class UnpackerTest {
         public byte[] getData(String path) {
             try {
                 ZipEntry entry = zipFile.getEntry(generatePath(this.path, path));
-                try (InputStream is = zipFile.getInputStream(entry) ) {
+                try (InputStream is = zipFile.getInputStream(entry)) {
                     return IOUtils.toByteArray(is);
                 }
             } catch (IOException e) {

@@ -22,7 +22,7 @@ public class ZipDestination extends Destination {
     @Override
     public void write(UFile sourceFile) throws UnpackException {
         if (sourceFile instanceof SourceFile) {
-            try (InputStream sis = ((SourceFile) sourceFile).createInputStream()) {
+            try (InputStream sis = ((SourceFile) sourceFile).getInputStream()) {
                 ZipEntry zipEntry = new ZipEntry(sourceFile.getPath());
                 os.putNextEntry(zipEntry);
                 IOUtils.copy(sis,os);

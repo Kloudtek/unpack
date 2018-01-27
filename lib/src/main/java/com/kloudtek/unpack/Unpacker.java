@@ -1,19 +1,15 @@
 package com.kloudtek.unpack;
 
-import com.kloudtek.util.FileUtils;
-import com.kloudtek.util.TempDir;
+import com.kloudtek.unpack.transformer.SetPropertyTransformer;
+import com.kloudtek.unpack.transformer.Transformer;
 import com.kloudtek.util.io.IOUtils;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Unpacker {
+    private final List<Transformer> transformers = new ArrayList<>();
     private Source source;
     private Destination destination;
 
@@ -25,16 +21,19 @@ public class Unpacker {
     public void unpack() throws UnpackException {
         try {
             source.read();
+            for (Transformer transformer : transformers) {
+                transformer.apply(source,destination);
+            }
             source.sort();
             for (UFile sourceFile : source.getFiles()) {
-                unpack(sourceFile);
+                destination.write(sourceFile);
             }
         } finally {
             IOUtils.close(source,destination);
         }
     }
 
-    public void unpack(UFile sourceFile) throws UnpackException {
-        destination.write(sourceFile);
+    public void addTransformer(SetPropertyTransformer transformer) {
+        transformers.add(transformer);
     }
 }

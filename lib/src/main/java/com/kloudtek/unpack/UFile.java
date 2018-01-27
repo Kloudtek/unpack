@@ -3,6 +3,8 @@ package com.kloudtek.unpack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.regex.Pattern;
+
 public abstract class UFile {
     protected String name;
     protected String path;

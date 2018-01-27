@@ -27,7 +27,7 @@ public class FSDestination extends Destination {
             if( sourceFile instanceof SourceDirectory ) {
                 FileUtils.mkdir(destFile);
             } else if( sourceFile instanceof SourceFile ) {
-                try( InputStream is = ((SourceFile) sourceFile).createInputStream(); FileOutputStream os = new FileOutputStream(destFile)) {
+                try(InputStream is = ((SourceFile) sourceFile).getInputStream(); FileOutputStream os = new FileOutputStream(destFile)) {
                     IOUtils.copy(is,os);
                 }
             }

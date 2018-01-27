@@ -4,6 +4,8 @@ import com.kloudtek.util.CircularDependencyException;
 import com.kloudtek.util.SortUtils;
 import com.kloudtek.util.TopologicalSortComparator;
 import com.kloudtek.util.UnexpectedException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
@@ -12,7 +14,6 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public abstract class Source implements Closeable {
-    public static final Pattern pathPattern = Pattern.compile("((?:[^/]*/)*)(.*)");
     protected List<UFile> files = new ArrayList<>();
     protected LinkedHashMap<String, UFile> filesIdx = new LinkedHashMap<>();
 
@@ -65,6 +66,11 @@ public abstract class Source implements Closeable {
         } catch (CircularDependencyException e) {
             throw new UnexpectedException(e.getMessage(),e);
         }
+    }
+
+    @Nullable
+    public UFile getFile(@NotNull String path) {
+        return filesIdx.get(path);
     }
 
     private class UFileWrapper {

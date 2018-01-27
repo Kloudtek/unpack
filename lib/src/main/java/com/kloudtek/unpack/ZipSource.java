@@ -1,5 +1,6 @@
 package com.kloudtek.unpack;
 
+import com.kloudtek.util.FileUtils;
 import com.kloudtek.util.StringUtils;
 import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.IOUtils;
@@ -28,14 +29,10 @@ public class ZipSource extends Source {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
-                Matcher m = pathPattern.matcher(entry.getName());
-                if (!m.find()) {
-                    throw new UnexpectedException("path matching failed: " + entry.getName());
-                }
-                String name = m.group(2);
-                String parentPath = m.group(1);
+                FileUtils.SplitPath splitPath = FileUtils.splitFileNameFromParentPath(entry.getName(), '/');
+                String name = splitPath.getFilename();
+                String parentPath = splitPath.getParentPath();
                 if (StringUtils.isNotBlank(parentPath)) {
-                    parentPath = parentPath.substring(0,parentPath.length()-1);
                     StringBuilder pathBuilder = null;
                     for (String pathEl : parentPath.split("/")) {
                         if( StringUtils.isNotBlank(pathEl)) {
