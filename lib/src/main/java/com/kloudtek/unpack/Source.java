@@ -1,11 +1,18 @@
 package com.kloudtek.unpack;
 
+import com.kloudtek.util.CircularDependencyException;
+import com.kloudtek.util.SortUtils;
+import com.kloudtek.util.TopologicalSortComparator;
 import com.kloudtek.util.UnexpectedException;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
-public abstract class Source {
+public abstract class Source implements Closeable {
+    public static final Pattern pathPattern = Pattern.compile("((?:[^/]*/)*)(.*)");
     protected List<UFile> files = new ArrayList<>();
     protected LinkedHashMap<String, UFile> filesIdx = new LinkedHashMap<>();
 
@@ -20,10 +27,14 @@ public abstract class Source {
             case DIR:
                 return new FSSource(file);
             case ZIP:
-                return new ArchiveSource(file, fileType.getExtension());
+                return new ZipSource(file, fileType.getExtension());
             default:
                 throw new UnexpectedException("Unexpected source type: " + fileType);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 
     public void add(UFile file) {
@@ -31,8 +42,29 @@ public abstract class Source {
         filesIdx.put(file.getPath(),file);
     }
 
+    public void refreshPathIndex() {
+        filesIdx.clear();
+        for (UFile file : files) {
+            filesIdx.put(file.getPath(),file);
+        }
+    }
+
     public void sort() {
-        System.out.println();
+        try {
+            files = SortUtils.topologicalSort(files, new TopologicalSortComparator<UFile>() {
+                @Override
+                public SortUtils.TopologicalSortRelationship getRelationship(UFile source, UFile target) {
+                    return source.getPath().startsWith(target.getPath()) ? SortUtils.TopologicalSortRelationship.STRONG : SortUtils.TopologicalSortRelationship.NONE;
+                }
+
+                @Override
+                public String getObjectRepresentation(UFile object) {
+                    return object.getPath();
+                }
+            });
+        } catch (CircularDependencyException e) {
+            throw new UnexpectedException(e.getMessage(),e);
+        }
     }
 
     private class UFileWrapper {

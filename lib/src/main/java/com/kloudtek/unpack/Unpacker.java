@@ -23,11 +23,14 @@ public class Unpacker {
     }
 
     public void unpack() throws UnpackException {
-        source.read();
-
-        source.sort();
-        for (UFile sourceFile : source.getFiles()) {
-            unpack(sourceFile);
+        try {
+            source.read();
+            source.sort();
+            for (UFile sourceFile : source.getFiles()) {
+                unpack(sourceFile);
+            }
+        } finally {
+            IOUtils.close(source,destination);
         }
     }
 

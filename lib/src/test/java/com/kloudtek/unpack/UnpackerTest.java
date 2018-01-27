@@ -67,6 +67,7 @@ class UnpackerTest {
         init(srcType, dstType);
         builder.addText(PATH_TEXTFILE, FOO);
         builder.mkdir(SOMEDIR).addText(SOMEFILE, BAR);
+        builder.build();
         unpacker.unpack();
         verifier.exists();
         verifier.textFile(PATH_TEXTFILE, FOO);
@@ -85,8 +86,8 @@ class UnpackerTest {
 
     static Stream<Arguments> srcAndDestTypes() {
         return Stream.of(
-                Arguments.of(DIR, DIR)
-//                Arguments.of(ZIP, DIR)
+                Arguments.of(DIR, DIR),
+                Arguments.of(ZIP, DIR)
         );
     }
 

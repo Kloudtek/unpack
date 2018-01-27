@@ -2,9 +2,11 @@ package com.kloudtek.unpack;
 
 import com.kloudtek.util.UnexpectedException;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 
-public abstract class Destination {
+public abstract class Destination implements Closeable {
     public static Destination create(File file, FileType fileType) throws UnpackException {
         switch (fileType) {
             case DIR:
@@ -15,4 +17,8 @@ public abstract class Destination {
     }
 
     public abstract void write(UFile sourceFile) throws UnpackException;
+
+    @Override
+    public void close() throws IOException {
+    }
 }
