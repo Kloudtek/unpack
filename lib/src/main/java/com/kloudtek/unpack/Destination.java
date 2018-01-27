@@ -11,6 +11,8 @@ public abstract class Destination implements Closeable {
         switch (fileType) {
             case DIR:
                 return new FSDestination(file);
+            case ZIP:
+                return new ZipDestination(file);
             default:
                 throw new UnexpectedException("Unexpected source type: " + fileType);
         }

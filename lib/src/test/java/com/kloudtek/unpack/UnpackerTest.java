@@ -6,21 +6,23 @@ import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.IOUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.opentest4j.AssertionFailedError;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import static com.kloudtek.unpack.FileType.DIR;
 import static com.kloudtek.unpack.FileType.ZIP;
+import static com.kloudtek.unpack.UFile.generatePath;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UnpackerTest {
@@ -87,7 +89,9 @@ class UnpackerTest {
     static Stream<Arguments> srcAndDestTypes() {
         return Stream.of(
                 Arguments.of(DIR, DIR),
-                Arguments.of(ZIP, DIR)
+                Arguments.of(ZIP, DIR),
+                Arguments.of(DIR, ZIP),
+                Arguments.of(ZIP, ZIP)
         );
     }
 
@@ -120,6 +124,8 @@ class UnpackerTest {
         switch (type) {
             case DIR:
                 return new FileVerifier(dstFile);
+            case ZIP:
+                return new ZipVerifier(dstFile);
             default:
                 throw new IllegalArgumentException("Invalid type: " + type);
         }
@@ -253,19 +259,44 @@ class UnpackerTest {
     }
 
     class ZipVerifier extends Verifier {
+        private File file;
+        private ZipFile zipFile;
+        private String path;
+
+        public ZipVerifier(File file) {
+            this.file = file;
+        }
+
+        public ZipVerifier(ZipFile zipFile, String path) {
+            this.zipFile = zipFile;
+            this.path = path;
+        }
+
         @Override
         public byte[] getData(String path) {
-            return new byte[0];
+            try {
+                ZipEntry entry = zipFile.getEntry(generatePath(this.path, path));
+                try (InputStream is = zipFile.getInputStream(entry) ) {
+                    return IOUtils.toByteArray(is);
+                }
+            } catch (IOException e) {
+                throw new AssertionFailedError(e.getMessage(), e);
+            }
         }
 
         @Override
         public void exists() {
-
+            try {
+                assertFileExists(file);
+                zipFile = new ZipFile(file);
+            } catch (IOException e) {
+                Assertions.fail(e);
+            }
         }
 
         @Override
-        public Verifier dir(String dir) {
-            return null;
+        public Verifier dir(String path) {
+            return new ZipVerifier(zipFile, generatePath(this.path, path));
         }
     }
 
