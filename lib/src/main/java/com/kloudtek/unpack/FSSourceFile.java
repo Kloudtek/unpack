@@ -9,8 +9,8 @@ import java.util.List;
 public class FSSourceFile extends SourceFile {
     private File file;
 
-    protected FSSourceFile(File file, FSSourceDirectory parent) {
-        super(file.getName(),parent);
+    protected FSSourceFile(File file, String path) {
+        super(file.getName(),path);
         this.file = file;
     }
 

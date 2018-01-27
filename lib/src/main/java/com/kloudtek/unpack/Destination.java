@@ -14,5 +14,5 @@ public abstract class Destination {
         }
     }
 
-    public abstract void write(SourceFile sourceFile) throws UnpackException;
+    public abstract void write(UFile sourceFile) throws UnpackException;
 }

@@ -24,17 +24,14 @@ public class Unpacker {
 
     public void unpack() throws UnpackException {
         source.read();
-        for (SourceFile sourceFile : source.getFiles()) {
+
+        source.sort();
+        for (UFile sourceFile : source.getFiles()) {
             unpack(sourceFile);
         }
     }
 
-    public void unpack(SourceFile sourceFile) throws UnpackException {
+    public void unpack(UFile sourceFile) throws UnpackException {
         destination.write(sourceFile);
-        if( sourceFile instanceof SourceDirectory ) {
-            for (SourceFile file : ((SourceDirectory) sourceFile).getFiles()) {
-                unpack(file);
-            }
-        }
     }
 }

@@ -3,29 +3,16 @@ package com.kloudtek.unpack;
 import com.kloudtek.util.UnexpectedException;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public abstract class Source {
-    protected List<SourceFile> files = new ArrayList<>();
-    protected List<SourceFile> allFiles = new ArrayList<>();
+    protected List<UFile> files = new ArrayList<>();
+    protected LinkedHashMap<String, UFile> filesIdx = new LinkedHashMap<>();
 
     public abstract void read() throws UnpackException;
 
-    public List<SourceFile> getFiles() {
+    public List<UFile> getFiles() {
         return files;
-    }
-
-    public void setFiles(List<SourceFile> files) {
-        this.files = files;
-    }
-
-    public List<SourceFile> getAllFiles() {
-        return allFiles;
-    }
-
-    public void setAllFiles(List<SourceFile> allFiles) {
-        this.allFiles = allFiles;
     }
 
     public static Source create(File file, FileType fileType) throws UnpackException {
@@ -33,9 +20,23 @@ public abstract class Source {
             case DIR:
                 return new FSSource(file);
             case ZIP:
-                return new ZipSource(file);
+                return new ArchiveSource(file, fileType.getExtension());
             default:
-                throw new UnexpectedException("Unexpected source type: "+fileType);
+                throw new UnexpectedException("Unexpected source type: " + fileType);
         }
+    }
+
+    public void add(UFile file) {
+        files.add(file);
+        filesIdx.put(file.getPath(),file);
+    }
+
+    public void sort() {
+        System.out.println();
+    }
+
+    private class UFileWrapper {
+        private UFile file;
+        private UFileWrapper parent;
     }
 }

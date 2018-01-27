@@ -1,7 +1,6 @@
 package com.kloudtek.unpack;
 
 import com.kloudtek.util.FileUtils;
-import com.kloudtek.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +16,7 @@ public class FSSource extends Source {
     public void read() throws UnpackException {
         try {
             if (!file.exists()) {
-                FileUtils.mkdir(file);
+                throw new UnpackException("Source directory doesn't exist: " + file.getPath());
             } else if (!file.isDirectory()) {
                 throw new UnpackException("File isn't a directory: " + file.getPath());
             }
@@ -30,21 +29,17 @@ public class FSSource extends Source {
     }
 
     private void listFiles(File file, FSSourceDirectory parent) throws IOException {
-        SourceFile srcFile;
+        UFile srcFile;
+        String path = parent != null ? parent.getPath()+"/"+file.getName() : file.getName();
         if (file.isDirectory()) {
-            FSSourceDirectory dir = new FSSourceDirectory(file, parent);
+            FSSourceDirectory dir = new FSSourceDirectory(file, path);
             for (File f : FileUtils.listFileInDir(file)) {
                 listFiles(f, dir);
             }
             srcFile = dir;
         } else {
-            srcFile = new FSSourceFile(file, parent);
+            srcFile = new FSSourceFile(file, path);
         }
-        if (parent == null) {
-            files.add(srcFile);
-        } else {
-            parent.add(srcFile);
-        }
-        allFiles.add(srcFile);
+        add(srcFile);
     }
 }

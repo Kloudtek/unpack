@@ -3,18 +3,23 @@ package com.kloudtek.unpack;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SourceDirectory extends SourceFile {
-    private final List<SourceFile> files = new ArrayList<>();
+public class SourceDirectory extends UFile {
+    private final List<UFile> files = new ArrayList<>();
 
-    public SourceDirectory(String name, SourceDirectory parent) {
-        super(name, parent);
+    public SourceDirectory(String name, String path) {
+        super(name, path);
     }
 
-    public List<SourceFile> getFiles() {
+    public List<UFile> getFiles() {
         return files;
     }
 
-    public void add(SourceFile srcFile) {
+    public void add(UFile srcFile) {
         files.add(srcFile);
     }
+
+    public boolean contains(UFile file) {
+        return files.contains(file);
+    }
+
 }

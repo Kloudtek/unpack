@@ -6,7 +6,10 @@ import com.kloudtek.util.UnexpectedException;
 import com.kloudtek.util.io.IOUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -55,7 +58,7 @@ class UnpackerTest {
 
     @AfterEach
     public void cleanupAfterTest() throws IOException {
-        FileUtils.delete(srcFile,srcFile);
+        FileUtils.delete(srcFile, srcFile);
     }
 
     @ParameterizedTest
@@ -66,8 +69,8 @@ class UnpackerTest {
         builder.mkdir(SOMEDIR).addText(SOMEFILE, BAR);
         unpacker.unpack();
         verifier.exists();
-        verifier.textFile(PATH_TEXTFILE,FOO);
-        verifier.dir(SOMEDIR).textFile(SOMEFILE,BAR);
+        verifier.textFile(PATH_TEXTFILE, FOO);
+        verifier.dir(SOMEDIR).textFile(SOMEFILE, BAR);
     }
 
     @Test
@@ -82,17 +85,17 @@ class UnpackerTest {
 
     static Stream<Arguments> srcAndDestTypes() {
         return Stream.of(
-            Arguments.of(DIR, DIR)
-//                ,Arguments.of(ZIP, DIR)
+                Arguments.of(DIR, DIR)
+//                Arguments.of(ZIP, DIR)
         );
     }
 
     private void init(FileType src, FileType dest) throws UnpackException {
         try {
             String testId = UUID.randomUUID().toString();
-            System.out.println("Test ID: "+testId);
-            srcFile = new File(tmpDir, testId + "-src."+src.getExtension());
-            dstFile = new File(tmpDir, testId + "-dst."+src.getExtension());
+            System.out.println("Test ID: " + testId);
+            srcFile = new File(tmpDir, testId + "-src." + src.getExtension());
+            dstFile = new File(tmpDir, testId + "-dst." + src.getExtension());
             builder = createSource(src);
             verifier = createVerifier(dest);
             unpacker = new Unpacker(srcFile, src, dstFile, dest);
@@ -148,10 +151,10 @@ class UnpackerTest {
         public SourceBuilder addData(String path, byte[] data) throws IOException {
             File file = new File(this.file + File.separator + path.replace("/", File.separator));
             File parentFile = file.getParentFile();
-            if( ! parentFile.exists() ) {
+            if (!parentFile.exists()) {
                 FileUtils.mkdirs(parentFile);
             }
-            FileUtils.write(file,data);
+            FileUtils.write(file, data);
             return this;
         }
 
@@ -168,14 +171,20 @@ class UnpackerTest {
 
     class ZipBuilder extends SourceBuilder {
         private final ZipArchiveOutputStream os;
+        private String path;
 
         public ZipBuilder(File file) throws IOException {
             os = new ZipArchiveOutputStream(file);
         }
 
+        public ZipBuilder(ZipArchiveOutputStream os, String path) throws IOException {
+            this.os = os;
+            this.path = path;
+        }
+
         @Override
         public SourceBuilder addData(String path, byte[] data) throws IOException {
-            ZipArchiveEntry archiveEntry = new ZipArchiveEntry(path);
+            ZipArchiveEntry archiveEntry = new ZipArchiveEntry(this.path == null ? path : this.path + "/" + path);
             archiveEntry.setSize(data.length);
             os.putArchiveEntry(archiveEntry);
             os.write(data);
@@ -190,14 +199,18 @@ class UnpackerTest {
 
         @Override
         public SourceBuilder mkdir(String name) {
-            return null;
+            try {
+                return new ZipBuilder(os, path == null ? name : this.path + "/" + name);
+            } catch (IOException e) {
+                throw new UnexpectedException(e);
+            }
         }
     }
 
     abstract class Verifier {
         Verifier textFile(String path, String expected) {
             String content = StringUtils.utf8(getData(path));
-            assertEquals(expected,content);
+            assertEquals(expected, content);
             return this;
         }
 
@@ -216,7 +229,7 @@ class UnpackerTest {
         }
 
         public void exists() {
-            assertTrue(file.exists(),"File doesn't exist: "+file.getPath());
+            assertTrue(file.exists(), "File doesn't exist: " + file.getPath());
         }
 
         @Override
@@ -256,7 +269,7 @@ class UnpackerTest {
     }
 
     private static void assertFileExists(File dataFile) {
-        assertTrue(dataFile.exists(),"File "+dataFile.getAbsolutePath()+" does not exist");
+        assertTrue(dataFile.exists(), "File " + dataFile.getAbsolutePath() + " does not exist");
     }
 
     private static void assertIsDir(File file) {
