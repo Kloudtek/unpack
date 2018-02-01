@@ -6,6 +6,7 @@ import com.kloudtek.util.io.IOUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Unpacker {
@@ -33,7 +34,11 @@ public class Unpacker {
         }
     }
 
-    public void addTransformer(SetPropertyTransformer transformer) {
+    public void addTransformer(Transformer transformer) {
         transformers.add(transformer);
+    }
+
+    public void addTransformers(Collection<Transformer> transformers) {
+        this.transformers.addAll(transformers);
     }
 }
