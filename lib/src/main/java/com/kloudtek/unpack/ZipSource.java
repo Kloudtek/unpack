@@ -41,7 +41,10 @@ public class ZipSource extends Source {
                             } else {
                                 pathBuilder.append('/').append(pathEl);
                             }
-                            add(new SourceDirectory(pathEl,pathBuilder.toString()));
+                            String fullParentPath = pathBuilder.toString();
+                            if( getFile(fullParentPath) == null ) {
+                                add(new SourceDirectory(pathEl, fullParentPath));
+                            }
                         }
                     }
                 }
